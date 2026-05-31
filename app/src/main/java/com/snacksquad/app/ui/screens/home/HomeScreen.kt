@@ -179,6 +179,7 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BadgeBox(badgeContent: @Composable () -> Unit, content: @Composable () -> Unit) {
     BadgedBox(badge = { Badge { badgeContent() } }) {
