@@ -1,12 +1,15 @@
 package com.snacksquad.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.snacksquad.app.data.repository.MockLlmAssistantRepository
 import com.snacksquad.app.data.repository.MockProductRepository
+import com.snacksquad.app.domain.models.Product
 import com.snacksquad.app.ui.screens.auth.AuthScreen
 import com.snacksquad.app.ui.screens.cart.CartScreen
 import com.snacksquad.app.ui.screens.checkout.CheckoutScreen
@@ -44,26 +47,29 @@ fun SnackSquadNavGraph(
     val productRepo = remember { MockProductRepository() }
     val llmRepo = remember { MockLlmAssistantRepository() }
     
+    val categories by productRepo.getCategories().collectAsState(initial = emptyList())
+    val products by productRepo.getFeaturedProducts().collectAsState(initial = emptyList())
+    
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
         composable(route = Screen.Splash.route) {
-            SplashScreen(onSplashComplete = {
+            SplashScreen(onNavigateToOnboarding = {
                 navController.navigate(Screen.Onboarding.route) {
                     popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             })
         }
         composable(route = Screen.Onboarding.route) {
-            OnboardingScreen(onFinishOnboarding = {
+            OnboardingScreen(onNavigateToAuth = {
                 navController.navigate(Screen.Auth.route) {
                     popUpTo(Screen.Onboarding.route) { inclusive = true }
                 }
             })
         }
         composable(route = Screen.Auth.route) {
-            AuthScreen(onAuthSuccess = {
+            AuthScreen(onLoginSuccess = {
                 navController.navigate(Screen.Home.route) {
                     popUpTo(Screen.Auth.route) { inclusive = true }
                 }
@@ -71,8 +77,8 @@ fun SnackSquadNavGraph(
         }
         composable(route = Screen.Home.route) {
             HomeScreen(
-                categories = productRepo.getCategories(),
-                products = productRepo.getFeaturedProducts(),
+                categories = categories,
+                products = products,
                 onProductClick = { navController.navigate(Screen.ProductDetail.route) },
                 onCartClick = { navController.navigate(Screen.Cart.route) },
                 onLlmAssistClick = { navController.navigate(Screen.LlmAssist.route) }
@@ -80,13 +86,14 @@ fun SnackSquadNavGraph(
         }
         composable(route = Screen.LlmAssist.route) {
             LlmAssistScreen(
-                onBackClick = { navController.popBackStack() },
-                onProductClick = { navController.navigate(Screen.ProductDetail.route) }
+                onBack = { navController.popBackStack() },
+                onProductClick = { navController.navigate(Screen.ProductDetail.route) },
+                recommendedProducts = products
             )
         }
         composable(route = Screen.ProductDetail.route) {
             ProductDetailScreen(
-                product = productRepo.getFeaturedProducts().first(),
+                product = products.firstOrNull(),
                 onBackClick = { navController.popBackStack() },
                 onAddToCart = { _, _, _ -> navController.navigate(Screen.Cart.route) }
             )
