@@ -45,7 +45,7 @@ fun SnackSquadNavGraph(
     startDestination: String = Screen.Splash.route
 ) {
     val productRepo = remember { MockProductRepository() }
-    val llmRepo = remember { MockLlmAssistantRepository() }
+    val llmRepo = remember { MockLlmAssistantRepository(productRepo) }
     
     val categories by productRepo.getCategories().collectAsState(initial = emptyList())
     val products by productRepo.getFeaturedProducts().collectAsState(initial = emptyList())
